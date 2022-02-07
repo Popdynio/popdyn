@@ -8,11 +8,11 @@ groups = {
     'r': 1000
 }
 
-sir = Model([g for g in groups])
+sir = Model(groups)
 sir['s', 'i'] = Transition(2, 3, 's', 'i', N=True)
 sir['i', 'r'] = Transition(4, 5, 'i')
 
 print(sir)
-print('s =', sir.differential('s', groups))
-print('i =', sir.differential('i', groups))
-print('r =', sir.differential('r', groups))
+print('s =', sir.differential('s'))
+print('i =', sir.differential('i'))
+print('r =', sir.differential('r'))

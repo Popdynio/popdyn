@@ -1,8 +1,4 @@
-"""
-Module that defines the diferent transitions classes.
-"""
 import math
-import json
 
 class Transition:
 
@@ -12,15 +8,15 @@ class Transition:
         beta: float,
         *vars: list[str],
         N: bool = False,
-    ):
+    ) -> None:
         """
         Class that represents a transition between two groups.
 
         Args:
             alpha: alpha value of the transition.
-            beta: betha balue of the transition.
+            beta: beta balue of the transition.
             vars: different groups identifiers involved in the transition.
-            N: True if the transition depend on the global population, False
+            N: True if the transition depends on the global population, False
                 in other case.
         """
         self.alpha = alpha
@@ -28,9 +24,9 @@ class Transition:
         self.vars = vars
         self.N = N
 
-    def __call__(self, groups_pop: dict[str, int]):
+    def __call__(self, groups_pop: dict[str, int]) -> float:
         """
-        Aplies the function of transition over the population data.
+        Applies the differential of the transition over the population data.
 
         Args:
             groups_pop: dictionary that contains for each group indentifier
@@ -47,24 +43,43 @@ class Transition:
             pow(total_pop, len(vars_pop) - 1)
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f'{self.alpha} * {self.beta}' +
             (f' * {" * ".join(self.vars)}' if self.vars else '') +
             (f' / N^{len(self.vars) - 1}' if self.vars and self.N else '')
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
 class Model:
 
-    def __init__(self, groups: list[str]):
-        self.groups: list[str] = groups
+    def __init__(self, groups: dict[str, int]) -> None:
+        """
+        Model that represents the dynamic system of a population. Stores a
+        matrix with the transitions between each group.
+
+        Args:
+            groups: dictionary that maps the indentifier of each group to the
+                value of his population.
+        """
+        self.groups = groups
         self.matrix: dict[str, dict[str, Transition]] = {g: {} for g in groups}
 
-    def __setitem__(self, start_end: tuple[str], trans: Transition):
+    def __setitem__(self, start_end: tuple[str], trans: Transition) -> None:
+        """
+        Adds a transition between to groups to the model.
+
+        Args:
+            start_end: tuple containing the the identifiers of start and end
+                groups.
+        
+        Raises:
+            ValueError: strart or end group are not registered groups of the
+                model.
+        """
         start, end = start_end
         if start not in self.groups:
             raise ValueError('Invalid start group for transition')
@@ -73,7 +88,18 @@ class Model:
 
         self.matrix[start][end] = trans
 
-    def __getitem__(self, start_end: tuple[str]):
+    def __getitem__(self, start_end: tuple[str]) -> Transition:
+        """
+        Gets a transition between to groups of the model.
+
+        Args:
+            start_end: tuple containing the the identifiers of start and end
+                groups.
+        
+        Returns:
+            The transition between start and end, None if start and/or end are
+            not valid groups.
+        """
         start, end = start_end
         try:
             return self.matrix[start][end]
@@ -86,15 +112,16 @@ class Model:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def differential(self, group: str, groups_pop: dict[str, int]):
+    def differential(self, group: str) -> float:
         """
         Applies the equation of transformation for a group based on the
         groups's population.
 
         Args:
             group: group target of the equation.
-            groups_pop: dictionary that contains for each group indentifier
-                the population of that group.
+
+        Returns:
+            The differential of the group evaluated for the population.
         """
         in_trans = [
             v[group] for v in self.matrix.values()
@@ -103,6 +130,6 @@ class Model:
         out_trans = [v for v in self.matrix[group].values()]
 
         return (
-            sum([trans(groups_pop) for trans in in_trans])
-            - sum([trans(groups_pop) for trans in out_trans])
+            sum([trans(self.groups) for trans in in_trans])
+            - sum([trans(self.groups) for trans in out_trans])
         )
