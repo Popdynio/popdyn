@@ -28,7 +28,7 @@ class Transition:
         self.vars = vars
         self.N = N
 
-    def __call__(self, vars_pop: list[int]) -> float:
+    def __call__(self, vars_pop: list[int], total_pop: int) -> float:
         """
         Applies the differential of the transition over the population data.
 
@@ -131,12 +131,13 @@ class Model:
         ]
         out_trans = [v for v in self.matrix[group].values()]
 
+        total_pop = sum(self.groups.values())
         gs_keys = list(self.groups.keys())
         reduced_gs = lambda t: [groups_pop[gs_keys.index(v)] for v in t.vars]
 
         return (
-            sum([trans(reduced_gs(trans)) for trans in in_trans])
-            - sum([trans(reduced_gs(trans)) for trans in out_trans])
+            sum([trans(reduced_gs(trans), total_pop) for trans in in_trans])
+            - sum([trans(reduced_gs(trans), total_pop) for trans in out_trans])
         )
 
     def _differential_system(self, groups_pop: list[int], *_) -> tuple[float]:
