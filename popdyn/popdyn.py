@@ -1,5 +1,9 @@
 import math
 
+import numpy as np
+from scipy import integrate
+
+
 class Transition:
 
     def __init__(
@@ -24,19 +28,14 @@ class Transition:
         self.vars = vars
         self.N = N
 
-    def __call__(self, groups_pop: dict[str, int]) -> float:
+    def __call__(self, vars_pop: list[int]) -> float:
         """
         Applies the differential of the transition over the population data.
 
         Args:
-            groups_pop: dictionary that contains for each group indentifier
-                the population of that group.
+            vars_pop: population for each group in the transition.
         """
-        try:
-            vars_pop = [groups_pop[v] for v in self.vars]
-        except KeyError as e:
-            raise ValueError(f'No population for group "{e.args[0]}"')
-        total_pop = sum(p for p in groups_pop.values()) if self.N else 0
+        total_pop = sum(vars_pop) if self.N else 1
 
         return (
             self.alpha * self.beta * math.prod(vars_pop) /
@@ -56,21 +55,22 @@ class Transition:
 
 class Model:
 
-    def __init__(self, groups: dict[str, int]) -> None:
+    def __init__(self, initial_groups: dict[str, int]) -> None:
         """
         Model that represents the dynamic system of a population. Stores a
         matrix with the transitions between each group.
 
         Args:
             groups: dictionary that maps the indentifier of each group to the
-                value of his population.
+                initial value of his population.
         """
-        self.groups = groups
-        self.matrix: dict[str, dict[str, Transition]] = {g: {} for g in groups}
+        self.groups = initial_groups
+        self.matrix: dict[str, dict[str, Transition]] = {
+            g: {} for g in initial_groups}
 
     def __setitem__(self, start_end: tuple[str], trans: Transition) -> None:
         """
-        Adds a transition between to groups to the model.
+        Adds a transition between two groups to the model.
 
         Args:
             start_end: tuple containing the the identifiers of start and end
@@ -93,7 +93,7 @@ class Model:
         Gets a transition between to groups of the model.
 
         Args:
-            start_end: tuple containing the the identifiers of start and end
+            start_end: tuple containing the identifiers of start and end
                 groups.
         
         Returns:
@@ -112,13 +112,15 @@ class Model:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def differential(self, group: str) -> float:
+    def _differential(self, group: str, groups_pop: dict[str, int]) -> float:
         """
         Applies the equation of transformation for a group based on the
         groups's population.
 
         Args:
             group: group target of the equation.
+            groups_pop: groups_pop: population of all the groups of the model
+                for a time t.
 
         Returns:
             The differential of the group evaluated for the population.
@@ -129,7 +131,43 @@ class Model:
         ]
         out_trans = [v for v in self.matrix[group].values()]
 
+        gs_keys = list(self.groups.keys())
+        reduced_gs = lambda t: [groups_pop[gs_keys.index(v)] for v in t.vars]
+
         return (
-            sum([trans(self.groups) for trans in in_trans])
-            - sum([trans(self.groups) for trans in out_trans])
+            sum([trans(reduced_gs(trans)) for trans in in_trans])
+            - sum([trans(reduced_gs(trans)) for trans in out_trans])
         )
+
+    def _differential_system(self, groups_pop: list[int], *_) -> tuple[float]:
+        """
+        Evaluates the differential for each group of the model.
+
+        Args:
+            groups_pop: population of all the groups of the model for a time t.
+        
+        Returns:
+            A tuple wiht the differentials evaluated for each group.
+        """
+        return tuple(self._differential(g, groups_pop) for g in self.groups)
+
+    def solve(self, t: int) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Calculates the evolution of the population for each group over a span
+        of time t.
+
+        Args:
+            t: total time, it's divided in timespans of a unity.
+        
+        Returns:
+            Tuple conatinig an array of points over the timespan and a matrix
+            with the value of population for each group in the time points.
+        """
+        time_points = np.arange(t)
+        y_result = integrate.odeint(
+            func=self._differential_system,
+            y0=list(self.groups.values()),
+            t=time_points,
+        )
+
+        return time_points, y_result.T
