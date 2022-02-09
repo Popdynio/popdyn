@@ -35,7 +35,7 @@ class Transition:
         Args:
             vars_pop: population for each group in the transition.
         """
-        total_pop = sum(vars_pop) if self.N else 1
+        total_pop = total_pop if self.N else 1
 
         return (
             self.alpha * self.beta * math.prod(vars_pop) /
