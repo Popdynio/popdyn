@@ -39,9 +39,14 @@ class TestTransition:
 class TestModel:
     
     def test___init__(self):
-        m = Model(['A', 'B', 'C', 'D', 'E'])
-        assert m.groups == ['A', 'B', 'C', 'D', 'E']
+        groups = ['A', 'B', 'C', 'D', 'E']
+        m = Model(groups)
+
+        assert m.groups == groups
+
         assert len(m.matrix) == 5
+        assert all([g in m.matrix for g in groups])
+        assert all([len(m.matrix[g]) == 0 for g in m.matrix])
 
     def test___set_item__(self):
         m = Model(['A', 'B', 'C'])
@@ -54,6 +59,12 @@ class TestModel:
         
         with pytest.raises(ValueError):
             m['E', 'F'] = Transition(1, 1)
+
+        m['A', 'B'] = Transition(1, 1)
+        m['B', 'C'] = Transition(1, 1)
+        m['C', 'A'] = Transition(1, 1)
+
+        assert all([len(m.matrix[g]) == 1 for g in m.matrix])
 
     def test___getitem__(self):
         m = Model(['A', 'B', 'C'])
