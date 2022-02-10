@@ -1,5 +1,3 @@
-from black import Mode
-from numpy import matrix
 import pytest
 
 from popdyn import Model, Transition
@@ -114,7 +112,7 @@ class TestModel:
 
         _, sis_pops = sis.solve(10, list(sis_groups.values()))
         assert all([
-            abs(pop[-1] - v)
+            abs(pop[-1] - v) < error
             for pop, v in zip(sis_pops, [500, 500])
         ])
 
@@ -132,6 +130,6 @@ class TestModel:
 
         _, seir_pops = seir.solve(100, list(seir_groups.values()))
         assert all([
-            abs(pop[-1] - v)
+            abs(pop[-1] - v) < error
             for pop, v in zip(seir_pops, [2746, 469, 22066, 11974717])
         ])
