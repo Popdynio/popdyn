@@ -27,7 +27,7 @@ groups = {
 }
 
 # intialize the model
-sir = Model(groups)
+sir = Model(list(groups.keys()))
 
 # add transitions between groups
 sir['S', 'I'] = Transition(1, 0.0561215, 'S', 'I', N=True)
@@ -46,7 +46,7 @@ R -> {}
 Once ready the model, we can simulate the behavior of the groups in a period of time:
 
 ```python
-time, pops = sir.solve(t=100)
+time, pops = sir.solve(t=100, list(groups.values()))
 ```
 
 Getting in `time` the points over the time and in `pops` a matrix with the population for each group in the different time points.
