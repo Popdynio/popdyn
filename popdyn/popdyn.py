@@ -1,4 +1,7 @@
 import math
+from mimetypes import init
+from multiprocessing.sharedctypes import Value
+from black import InvalidInput
 
 import numpy as np
 from scipy import integrate
@@ -10,7 +13,7 @@ class Transition:
         self,
         alpha: float,
         beta: float,
-        *vars: list[str],
+        *vars: tuple[str],
         N: bool = False,
     ) -> None:
         """
@@ -23,6 +26,12 @@ class Transition:
             N: True if the transition depends on the global population, False
                 in other case.
         """
+        if N and not vars:
+            raise ValueError(
+                'Transition cannot depend on N without interaction of at'
+                ' least one group'
+            )
+
         self.alpha = alpha
         self.beta = beta
         self.vars = vars
@@ -55,18 +64,16 @@ class Transition:
 
 class Model:
 
-    def __init__(self, initial_groups: dict[str, int]) -> None:
+    def __init__(self, groups: list[str]) -> None:
         """
         Model that represents the dynamic system of a population. Stores a
         matrix with the transitions between each group.
 
         Args:
-            groups: dictionary that maps the indentifier of each group to the
-                initial value of his population.
+            groups: list with the indentifiers for each group.
         """
-        self.groups = initial_groups
-        self.matrix: dict[str, dict[str, Transition]] = {
-            g: {} for g in initial_groups}
+        self.groups = groups
+        self.matrix: dict[str, dict[str, Transition]] = {g: {} for g in groups}
 
     def __setitem__(self, start_end: tuple[str], trans: Transition) -> None:
         """
@@ -119,8 +126,7 @@ class Model:
 
         Args:
             group: group target of the equation.
-            groups_pop: groups_pop: population of all the groups of the model
-                for a time t.
+            groups_pop: population of all the groups of the model for a time t.
 
         Returns:
             The differential of the group evaluated for the population.
@@ -131,9 +137,9 @@ class Model:
         ]
         out_trans = [v for v in self.matrix[group].values()]
 
-        total_pop = sum(self.groups.values())
-        gs_keys = list(self.groups.keys())
-        reduced_gs = lambda t: [groups_pop[gs_keys.index(v)] for v in t.vars]
+        total_pop = sum(groups_pop)
+        reduced_gs = lambda t: [
+            groups_pop[self.groups.index(v)] for v in t.vars]
 
         return (
             sum([trans(reduced_gs(trans), total_pop) for trans in in_trans])
@@ -148,18 +154,19 @@ class Model:
             groups_pop: population of all the groups of the model for a time t.
         
         Returns:
-            A tuple wiht the differentials evaluated for each group.
+            A tuple with the differentials evaluated for each group.
         """
         return tuple(self._differential(g, groups_pop) for g in self.groups)
 
-    def solve(self, t: int) -> tuple[np.ndarray, np.ndarray]:
+    def solve(self, t: int, initial_pop: list[int]) -> tuple[np.ndarray, np.ndarray]:
         """
         Calculates the evolution of the population for each group over a span
         of time t.
 
         Args:
-            t: total time, it's divided in timespans of a unity.
-        
+            t: total time, it's divided in spans of a unity.
+            initial_pop: the initial population values in each group. Must
+                keep the order used for the groups when instantiated the model.
         Returns:
             Tuple conatinig an array of points over the timespan and a matrix
             with the value of population for each group in the time points.
@@ -167,7 +174,7 @@ class Model:
         time_points = np.arange(t)
         y_result = integrate.odeint(
             func=self._differential_system,
-            y0=list(self.groups.values()),
+            y0=initial_pop,
             t=time_points,
         )
 
