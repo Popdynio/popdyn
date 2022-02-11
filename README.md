@@ -2,7 +2,7 @@
 
 Library for simulation of population dynamics.
 
-Allows to simulate the interaction between specific groups in a population, calculating the amount of members for each group along the time. The transitions between groups are defined using probabilistic rules, and the result is obtained throw the solution of the differential equations involved in the process.
+Allows to simulate the interaction between specific groups in a population, calculating the amount of members for each group along the time. The transitions between groups are defined using probabilistic rules, and the result is obtained through the solution of the differential equations involved in the process.
 
 ## Installing
 
@@ -46,7 +46,7 @@ R -> {}
 Once ready the model, we can simulate the behavior of the groups in a period of time:
 
 ```python
-time, pops = sir.solve(t=100, list(groups.values()))
+time, pops = sir.solve(t=100, initial_pop=list(groups.values()))
 ```
 
 Getting in `time` the points over the time and in `pops` a matrix with the population for each group in the different time points.
