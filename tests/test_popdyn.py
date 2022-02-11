@@ -48,7 +48,7 @@ class TestModel:
         assert all([g in m.matrix for g in groups])
         assert all([len(m.matrix[g]) == 0 for g in m.matrix])
 
-    def test___set_item__(self):
+    def test___setitem__(self):
         m = Model(['A', 'B', 'C'])
 
         with pytest.raises(ValueError):
@@ -80,6 +80,29 @@ class TestModel:
         assert m['E', 'B'] is None
         assert m['E', 'F'] is None
 
+    def test_get_in_out_trans(self):
+        groups = ['A', 'B', 'C', 'D']
+        m = Model(groups)
+        m['A', 'B'] = Transition(1, 2)
+        m['B', 'C'] = Transition(3, 4, 'B')
+        m['D', 'A'] = Transition(7, 8, 'A', 'B', 'C', 'D', N=True)
+
+        a_trans = a_in, a_out = m.get_in_out_trans('A')
+        assert all([len(trans) == 1 for trans in a_trans])
+        assert (a_in[0].alpha, a_out[0].alpha) == (7, 1)
+
+        b_trans = b_in, b_out = m.get_in_out_trans('B')
+        assert all([len(trans) == 1 for trans in b_trans])
+        assert (b_in[0].alpha, b_out[0].alpha) == (1, 3)
+
+        c_in, c_out = m.get_in_out_trans('C')
+        assert len(c_in) == 1
+        assert (c_in[0].alpha, c_out) == (3, [])
+
+        d_in, d_out = m.get_in_out_trans('D')
+        assert len(d_out) == 1
+        assert (d_in, d_out[0].alpha) == ([], 7)
+        
     def test__differential(self):
         groups = ['A', 'B', 'C', 'D']
         pops = [10, 20, 30, 40]

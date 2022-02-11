@@ -21,6 +21,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.10',
     ],
+    python_requires='>=3.10',
     packages=['popdyn'],
     include_package_data=True,
     install_requires=['scipy'],

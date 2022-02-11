@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 
 import numpy as np
@@ -116,6 +117,25 @@ class Model:
     def __repr__(self) -> str:
         return self.__str__()
 
+    def get_in_out_trans(self, group: str) -> tuple[list[Transition], list[Transition]]:
+        """
+        Gets the incoming and outcoming transitions for a group.
+
+        Args:
+            group: target group of transitions.
+        
+        Returns:
+            Tuple containing two lists with the incoming and outcoming
+            transitions for the group.
+        """
+        in_trans = [
+            v[group] for v in self.matrix.values()
+            if v.get(group) is not None
+        ]
+        out_trans = [v for v in self.matrix[group].values()]
+
+        return in_trans, out_trans
+
     def _differential(self, group: str, groups_pop: dict[str, int]) -> float:
         """
         Applies the equation of transformation for a group based on the
@@ -128,12 +148,7 @@ class Model:
         Returns:
             The differential of the group evaluated for the population.
         """
-        in_trans = [
-            v[group] for v in self.matrix.values()
-            if v.get(group) is not None
-        ]
-        out_trans = [v for v in self.matrix[group].values()]
-
+        in_trans, out_trans = self.get_in_out_trans(group)
         total_pop = sum(groups_pop)
         reduced_gs = lambda t: [
             groups_pop[self.groups.index(v)] for v in t.vars]
