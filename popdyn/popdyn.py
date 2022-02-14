@@ -183,7 +183,7 @@ class Model:
             Tuple conatinig an array of points over the timespan and a matrix
             with the value of population for each group in the time points.
         """
-        time_points = np.arange(t)
+        time_points = np.arange(t + 1)
         y_result = integrate.odeint(
             func=self._differential_system,
             y0=initial_pop,

@@ -132,7 +132,7 @@ class TestModel:
         _, sir_pops = sir.solve(100, list(sir_groups.values()))
         assert all([
             abs(pop[-1] - v) < error
-            for pop, v in zip(sir_pops, [7, 5115, 80877])
+            for pop, v in zip(sir_pops, [6, 4939, 81053])
         ])
 
         # SIS model
@@ -165,5 +165,5 @@ class TestModel:
         _, seir_pops = seir.solve(100, list(seir_groups.values()))
         assert all([
             abs(pop[-1] - v) < error
-            for pop, v in zip(seir_pops, [2746, 469, 22066, 11974717])
+            for pop, v in zip(seir_pops, [2740, 389, 19208, 11977661])
         ])
