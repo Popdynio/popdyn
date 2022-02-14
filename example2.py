@@ -1,3 +1,4 @@
+from mimetypes import init
 from unittest import result
 import matplotlib.pyplot as plt
 from popdyn import Model, Transition
@@ -16,8 +17,8 @@ sir['I', 'R'] = Transition(1, 0.035, 'I')
 
 t, sir_pops = sir.solve(100, list(sir_groups.values()))
 print([pop[-1] for pop in sir_pops])
-for (pop, tag) in zip(sir_pops, sir.groups):
-    plt.plot(t, pop, label=tag)
+# for (pop, tag) in zip(sir_pops, sir.groups):
+#     plt.plot(t, pop, label=tag)
 plt.xlabel('t')
 plt.ylabel('groups population')
 plt.legend(loc='upper center', ncol=len(sir.groups))
@@ -56,14 +57,15 @@ def a():
     results = model.run(number_of_trajectories=1) #Dictionary
     print(results)
     print([x for x in results[0]])
-    # plt.plot(results['time'], results['S'], 'r')
-    # plt.plot(results['time'], results['I'], 'g')
-    # plt.plot(results['time'], results['R'], 'y')
-    # plt.show()
 
 from popdyn.stochastic import StochasticModel
 
 sm = StochasticModel(['S', 'I', 'R'])
 sm.add_transition('S', 'I', 0.35/8.6e4, 'S', 'I')
 sm.add_transition('I', 'R', 0.035, 'I', 'R')
-x = sm.solve(100, [(1-4e-3) * 8.6e4, 4e-3 * 8.6e4, 0])
+initial = [(1-4e-3) * 8.6e4, 4e-3 * 8.6e4, 0]
+results = sm.solve(100, initial)
+plt.plot(results['time'], results['S'], 'r')
+plt.plot(results['time'], results['I'], 'g')
+plt.plot(results['time'], results['R'], 'y')
+plt.show()
