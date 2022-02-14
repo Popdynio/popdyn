@@ -3,6 +3,7 @@ import math
 
 import numpy as np
 from scipy import integrate
+from gillespy2 import Model as GModel, Parameter, Species, Reaction
 
 
 class Transition:
@@ -167,7 +168,7 @@ class Model:
         """
         return tuple(self._differential(g, groups_pop) for g in self.groups)
 
-    def solve(self, t: int, initial_pop: list[int]) -> tuple[np.ndarray, np.ndarray]:
+    def solve(self, t: int, initial_pop: list[int], solver='stochastic') -> dict[str, list[float]]:
         """
         Calculates the evolution of the population for each group over a span
         of time t.
@@ -176,15 +177,55 @@ class Model:
             t: total time, it's divided in spans of a unity.
             initial_pop: the initial population values in each group. Must
                 keep the order used for the groups when instantiated the model.
-        Returns:
-            Tuple conatinig an array of points over the timespan and a matrix
-            with the value of population for each group in the time points.
-        """
-        time_points = np.arange(t + 1)
-        y_result = integrate.odeint(
-            func=self._differential_system,
-            y0=initial_pop,
-            t=time_points,
-        )
+            solver: solver to get the results. Options are: 'ode' or 'stochastic'.
+        
+        Raises:
+            ValueError: received an unexpected solver.
 
-        return time_points, y_result.T
+        Returns:
+            Dictionary containing a key for each grup identifier and a key
+            'time', and values for the population for each group in the time
+            points.
+        """
+        if solver == 'stochastic':
+            gm = GModel(tspan=np.linspace(0, t, t + 1))
+            species = {
+                g: Species(name=g, initial_value=v, mode='discrete')
+                for g, v in zip(self.groups, initial_pop)
+            }
+            gm.add_species(list(species.values()))
+            for src in self.matrix:
+                for dest in self.matrix[src]:
+                    t = self.matrix[src][dest]
+                    rate = Parameter(
+                        name=f'param_{src}{dest}',
+                        expression=(t.rate / sum(initial_pop)) if t.N else t.rate
+                    )
+                    gm.add_parameter(rate)
+                    reactants = {species[g]: 1 for g in t.vars}
+                    products = {species[g]: 1 for g in t.vars if g != src}
+                    products[species[dest]] = 2 if dest in t.vars else 1
+                    reaction = Reaction(
+                        name=f'reaction_{src}{dest}',
+                        rate=rate,
+                        reactants=reactants,
+                        products=products,
+                    )        
+                    gm.add_reaction(reaction)
+            return gm.run(number_of_trajectories=1)[0]
+        elif solver == 'ode':
+            time_points = np.arange(t + 1)
+            y_result = integrate.odeint(
+                func=self._differential_system,
+                y0=initial_pop,
+                t=time_points,
+            )
+            return {
+                **{'time': time_points},
+                **{g: g_values for g, g_values in zip(self.groups, y_result.T)}
+            }
+        else:
+            raise ValueError(
+                'Unexpected solver.'
+                ' Options available are \'stochastic\' or \'ode\''
+            )

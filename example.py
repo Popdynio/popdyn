@@ -1,7 +1,9 @@
+from mimetypes import init
+from unittest import result
 import matplotlib.pyplot as plt
-
-from popdyn import Model, Transition
-
+from popdyn import Model, Transition, stochastic
+import gillespy2
+import numpy
 
 # SIR model
 sir_groups = {
@@ -10,13 +12,18 @@ sir_groups = {
     'R': 0
 }
 sir = Model(list(sir_groups.keys()))
-sir['S', 'I'] = Transition(1, 0.35, 'S', 'I', N=True)
-sir['I', 'R'] = Transition(1, 0.035, 'I')
+sir['S', 'I'] = Transition(0.35, 'S', 'I', N=True)
+sir['I', 'R'] = Transition(0.035, 'I')
 
-t, sir_pops = sir.solve(100, list(sir_groups.values()))
-print([pop[-1] for pop in sir_pops])
-for (pop, tag) in zip(sir_pops, sir.groups):
-    plt.plot(t, pop, label=tag)
+results1 = sir.solve(100, list(sir_groups.values()))
+plt.plot(results1['time'], results1['S'], 'r')
+plt.plot(results1['time'], results1['I'], 'g')
+plt.plot(results1['time'], results1['R'], 'y')
+results2 = sir.solve(100, list(sir_groups.values()), solver='stochastic')
+plt.plot(results2['time'], results2['S'], 'b')
+plt.plot(results2['time'], results2['I'], 'm')
+plt.plot(results2['time'], results2['R'], 'c')
+
 plt.xlabel('t')
 plt.ylabel('groups population')
 plt.legend(loc='upper center', ncol=len(sir.groups))

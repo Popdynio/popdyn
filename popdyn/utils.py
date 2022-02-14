@@ -1,3 +1,0 @@
-"""
-Util functions module.
-"""

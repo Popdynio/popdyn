@@ -119,6 +119,9 @@ class TestModel:
 
     def test_solve(self):
         error = 0.999999
+        # returns the dict without the 'time' key
+        no_time = lambda d: {k: d[k] for k in d if k != 'time'}
+
         # SIR Model
         sir_groups = {
             'S': (1-4e-3) * 8.6e4,
@@ -129,26 +132,42 @@ class TestModel:
         sir['S', 'I'] = Transition(0.35, 'S', 'I', N=True)
         sir['I', 'R'] = Transition(0.035, 'I')
 
-        _, sir_pops = sir.solve(100, list(sir_groups.values()))
+        sir_ode = sir.solve(100, list(sir_groups.values()), 'ode')
+        sir_ode_last = [sir_ode[g][-1] for g in no_time(sir_ode)]
         assert all([
-            abs(pop[-1] - v) < error
-            for pop, v in zip(sir_pops, [6, 4939, 81053])
-        ])
+            abs(sir_ode[g][-1] - v) < error
+            for g, v in zip(('S', 'I', 'R', ), [6, 4939, 81053])
+        ]), f'SIR ODE solver wrong result: {sir_ode_last}'
+
+        # sir_stoc = sir.solve(100, list(sir_groups.values()))
+        # sir_stoc_last = [sir_stoc[g][-1] for g in no_time(sir_stoc)]
+        # assert all([
+        #     abs(sir_stoc[g][-1] - v) < error
+        #     for g, v in zip(('S', 'I', 'R', ), [6, 4939, 81053])
+        # ]), f'SIR stochastic solver wrong result: {sir_stoc_last}'
 
         # SIS model
         sis_groups = {
-            'S': 990,
-            'I': 10,
+            'S': 990000,
+            'I': 10000,
         }
         sis = Model(list(sis_groups.keys()))
         sis['S','I'] = Transition(4, 'S', 'I', N=True)
         sis['I','S'] = Transition(2, 'I')
 
-        _, sis_pops = sis.solve(10, list(sis_groups.values()))
+        sis_ode = sis.solve(10, list(sis_groups.values()), 'ode')
+        sis_ode_last = [sis_ode[g][-1] for g in no_time(sis_ode)]
         assert all([
-            abs(pop[-1] - v) < error
-            for pop, v in zip(sis_pops, [500, 500])
-        ])
+            abs(sis_ode[g][-1] - v) < error
+            for g, v in zip(('S', 'I', ), [500000, 500000])
+        ]), f'SIS ODE solver wrong result: {sis_ode_last}'
+
+        # sis_stoc = sis.solve(100, list(sis_groups.values()))
+        # sis_stoc_last = [sis_stoc[g][-1] for g in no_time(sis_stoc)]
+        # assert all([
+        #     abs(sis_stoc[g][-1] - v) < error
+        #     for g, v in zip(('S', 'I', ), [499828, 500712])
+        # ]), f'SIS stochastic solver wrong result: {sis_stoc_last}'
 
         # SEIR model
         seir_groups ={
@@ -162,8 +181,16 @@ class TestModel:
         seir['E','I'] = Transition(1/5, 'E')
         seir['I','R'] = Transition(1/7, 'I')
 
-        _, seir_pops = seir.solve(100, list(seir_groups.values()))
+        seir_ode = seir.solve(100, list(seir_groups.values()), 'ode')
+        seir_ode_last = [seir_ode[g][-1] for g in no_time(seir_ode)]
         assert all([
-            abs(pop[-1] - v) < error
-            for pop, v in zip(seir_pops, [2740, 389, 19208, 11977661])
-        ])
+            abs(seir_ode[g][-1] - v) < error
+            for g, v in zip(('S', 'E', 'I', 'R', ), [2740, 389, 19208, 11977661])
+        ]), f'SEIR ODE solver wrong result: {seir_ode_last}'
+
+        # seir_stoc = seir.solve(1000, list(seir_groups.values()))
+        # seir_stoc_last = [seir_stoc[g][-1] for g in no_time(seir_stoc)]
+        # assert all([
+        #     abs(seir_stoc[g][-1] - v) < error
+        #     for g, v in zip(('S', 'E', 'I', 'R', ), [2740, 389, 19208, 11977661])
+        # ]), f'SEIR stochastic solver wrong result: {seir_stoc_last}'
