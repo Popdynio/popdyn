@@ -9,8 +9,7 @@ class Transition:
 
     def __init__(
         self,
-        alpha: float,
-        beta: float,
+        rate: float,
         *vars: tuple[str],
         N: bool = False,
     ) -> None:
@@ -18,8 +17,7 @@ class Transition:
         Class that represents a transition between two groups.
 
         Args:
-            alpha: alpha value of the transition.
-            beta: beta balue of the transition.
+            rate: rate change value of the transition.
             vars: different groups identifiers involved in the transition.
             N: True if the transition depends on the global population, False
                 in other case.
@@ -30,8 +28,7 @@ class Transition:
                 ' least one group'
             )
 
-        self.alpha = alpha
-        self.beta = beta
+        self.rate = rate
         self.vars = vars
         self.N = N
 
@@ -45,13 +42,13 @@ class Transition:
         total_pop = total_pop if self.N else 1
 
         return (
-            self.alpha * self.beta * math.prod(vars_pop) /
+            self.rate * math.prod(vars_pop) /
             pow(total_pop, len(vars_pop) - 1)
         )
 
     def __str__(self) -> str:
         return (
-            f'{self.alpha} * {self.beta}' +
+            f'{self.rate}' +
             (f' * {" * ".join(self.vars)}' if self.vars else '') +
             (f' / N^{len(self.vars) - 1}' if self.vars and self.N else '')
         )

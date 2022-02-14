@@ -30,16 +30,16 @@ groups = {
 sir = Model(list(groups.keys()))
 
 # add transitions between groups
-sir['S', 'I'] = Transition(1, 0.0561215, 'S', 'I', N=True)
-sir['I', 'R'] = Transition(1, 0.0455331, 'I')
+sir['S', 'I'] = Transition(0.0561215, 'S', 'I', N=True)
+sir['I', 'R'] = Transition(0.0455331, 'I')
 ```
 
 If we print the model, we can see the transitions for each group (`N` is the total population):
 
 ```
 >>> print(sir)
-S -> {'I': 1 * 0.0561215 * S * I / N^1}
-I -> {'R': 1 * 0.0455331 * I}
+S -> {'I': 0.0561215 * S * I / N^1}
+I -> {'R': 0.0455331 * I}
 R -> {}
 ```
 
