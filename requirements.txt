@@ -1,1 +1,3 @@
 scipy==1.8.0
+numpy==1.22.2
+gillespy2[sbml]
