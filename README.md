@@ -43,10 +43,10 @@ I -> {'R': 0.0455331 * I}
 R -> {}
 ```
 
-Once ready the model, we can simulate the behavior of the groups in a period of time:
+Once ready the model, we can simulate the behavior of the groups in a period of time using one of the available solvers: `stochastic` or `ode`.
 
 ```python
-time, pops = sir.solve(t=100, initial_pop=list(groups.values()))
+results = sir.solve(t=100, initial_pop=list(groups.values()), solver='stochastic')
 ```
 
-Getting in `time` the points over the time and in `pops` a matrix with the population for each group in the different time points.
+Getting in `results` a dictionary with a key `'time'` and a key for each group with the population at every time point.
