@@ -24,5 +24,5 @@ setup(
     python_requires='>=3.9',
     packages=['popdyn'],
     include_package_data=True,
-    install_requires=['scipy', 'gillespy2[sbml]'],
+    install_requires=['numpy', 'scipy', 'gillespy2[sbml]'],
 )

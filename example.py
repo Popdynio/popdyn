@@ -1,9 +1,8 @@
 from mimetypes import init
 from unittest import result
 import matplotlib.pyplot as plt
-from popdyn import Model, Transition, stochastic
-import gillespy2
-import numpy
+from popdyn import Model, Transition
+
 
 # SIR model
 sir_groups = {
@@ -19,7 +18,7 @@ results1 = sir.solve(100, list(sir_groups.values()))
 plt.plot(results1['time'], results1['S'], 'r')
 plt.plot(results1['time'], results1['I'], 'g')
 plt.plot(results1['time'], results1['R'], 'y')
-results2 = sir.solve(100, list(sir_groups.values()), solver='stochastic')
+results2 = sir.solve(100, list(sir_groups.values()), solver='TauLeaping')
 plt.plot(results2['time'], results2['S'], 'b')
 plt.plot(results2['time'], results2['I'], 'm')
 plt.plot(results2['time'], results2['R'], 'c')

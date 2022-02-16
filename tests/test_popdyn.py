@@ -132,7 +132,7 @@ class TestModel:
         sir['S', 'I'] = Transition(0.35, 'S', 'I', N=True)
         sir['I', 'R'] = Transition(0.035, 'I')
 
-        sir_ode = sir.solve(100, list(sir_groups.values()), 'ode')
+        sir_ode = sir.solve(100, list(sir_groups.values()), 'ODE')
         sir_ode_last = [sir_ode[g][-1] for g in no_time(sir_ode)]
         assert all([
             abs(sir_ode[g][-1] - v) < error
@@ -155,7 +155,7 @@ class TestModel:
         sis['S','I'] = Transition(4, 'S', 'I', N=True)
         sis['I','S'] = Transition(2, 'I')
 
-        sis_ode = sis.solve(10, list(sis_groups.values()), 'ode')
+        sis_ode = sis.solve(10, list(sis_groups.values()), 'ODE')
         sis_ode_last = [sis_ode[g][-1] for g in no_time(sis_ode)]
         assert all([
             abs(sis_ode[g][-1] - v) < error
@@ -181,7 +181,7 @@ class TestModel:
         seir['E','I'] = Transition(1/5, 'E')
         seir['I','R'] = Transition(1/7, 'I')
 
-        seir_ode = seir.solve(100, list(seir_groups.values()), 'ode')
+        seir_ode = seir.solve(100, list(seir_groups.values()), 'ODE')
         seir_ode_last = [seir_ode[g][-1] for g in no_time(seir_ode)]
         assert all([
             abs(seir_ode[g][-1] - v) < error

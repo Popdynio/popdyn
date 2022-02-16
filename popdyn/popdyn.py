@@ -3,7 +3,8 @@ import math
 
 import numpy as np
 from scipy import integrate
-from gillespy2 import Model as GModel, Parameter, Species, Reaction
+from gillespy2 import Model as GModel, Parameter, Species, Reaction, \
+    TauLeapingSolver, NumPySSASolver
 
 
 class Transition:
@@ -168,7 +169,7 @@ class Model:
         """
         return tuple(self._differential(g, groups_pop) for g in self.groups)
 
-    def solve(self, t: int, initial_pop: list[int], solver='stochastic') -> dict[str, list[float]]:
+    def solve(self, t: int, initial_pop: list[int], solver='Gillespie') -> dict[str, list[float]]:
         """
         Calculates the evolution of the population for each group over a span
         of time t.
@@ -177,7 +178,8 @@ class Model:
             t: total time, it's divided in spans of a unity.
             initial_pop: the initial population values in each group. Must
                 keep the order used for the groups when instantiated the model.
-            solver: solver to get the results. Options are: 'ode' or 'stochastic'.
+            solver: solver to get the results. Options are: 'Gillespie',
+                'TauLeaping' or 'ODE'.
         
         Raises:
             ValueError: received an unexpected solver.
@@ -187,7 +189,7 @@ class Model:
             'time', and values for the population for each group in the time
             points.
         """
-        if solver == 'stochastic':
+        if solver in ('Gillespie', 'TauLeaping', ):
             gm = GModel(tspan=np.linspace(0, t, t + 1))
             species = {
                 g: Species(name=g, initial_value=v, mode='discrete')
@@ -212,8 +214,12 @@ class Model:
                         products=products,
                     )        
                     gm.add_reaction(reaction)
-            return gm.run(number_of_trajectories=1)[0]
-        elif solver == 'ode':
+            results = gm.run(
+                number_of_trajectories=1,
+                solver=NumPySSASolver if solver == 'Gillespie' else TauLeapingSolver
+            )
+            return results[0]
+        elif solver == 'ODE':
             time_points = np.arange(t + 1)
             y_result = integrate.odeint(
                 func=self._differential_system,
@@ -227,5 +233,5 @@ class Model:
         else:
             raise ValueError(
                 'Unexpected solver.'
-                ' Options available are \'stochastic\' or \'ode\''
+                ' Options available are \'Gillespie\', \'TauLeaping\' or \'ODE\'.'
             )
