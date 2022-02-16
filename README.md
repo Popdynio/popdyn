@@ -2,7 +2,7 @@
 
 Library for simulation of population dynamics.
 
-Allows to simulate the interaction between specific groups in a population, calculating the amount of members for each group along the time. The transitions between groups are defined using probabilistic rules, and the result is obtained through the solution of the differential equations involved in the process.
+Allows to simulate the interaction between specific groups in a population, calculating the amount of members for each group along the time. The transitions between groups are defined using probabilistic rules. The results can be obtained through one of the deterministic or indeterministic solvers.
 
 ## Installing
 
@@ -43,10 +43,10 @@ I -> {'R': 0.0455331 * I}
 R -> {}
 ```
 
-Once ready the model, we can simulate the behavior of the groups in a period of time using one of the available solvers: `stochastic` or `ode`.
+Once ready the model, we can simulate the behavior of the groups in a period of time using one of the available solvers: `Gillespie`, `TauLeaping` or `ODE`.
 
 ```python
-results = sir.solve(t=100, initial_pop=list(groups.values()), solver='stochastic')
+results = sir.solve(t=100, initial_pop=list(groups.values()), solver='Gillespie')
 ```
 
 Getting in `results` a dictionary with a key `'time'` and a key for each group with the population at every time point.
