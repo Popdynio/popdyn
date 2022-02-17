@@ -1,6 +1,6 @@
 import pytest
 
-from popdyn import Model, Transition
+from popdyn import Model, Transition, SolverException
 
 
 class TestTransition:
@@ -196,3 +196,15 @@ class TestModel:
         #     abs(seir_stoc[g][-1] - v) < error
         #     for g, v in zip(('S', 'E', 'I', 'R', ), [2740, 389, 19208, 11977661])
         # ]), f'SEIR stochastic solver wrong result: {seir_stoc_last}'
+
+        # test Solver Exception
+        em = Model(['A', 'B', 'C'])
+        em['A', 'B'] = Transition(1, 'A', 'B', 'C')
+
+        with pytest.raises(SolverException):
+            em.solve(10, [20, 20, 20], solver='Gillespie')
+        
+        with pytest.raises(SolverException):
+            em.solve(10, [20, 20, 20], solver='TauLeaping')
+
+        em.solve(10, [20, 20, 20], solver='ODE')

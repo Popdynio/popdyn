@@ -190,6 +190,15 @@ class Model:
             points.
         """
         if solver in ('Gillespie', 'TauLeaping', ):
+            # check for no binary transitions
+            for src in self.matrix:
+                for trans in self.matrix[src].values():
+                    if len(trans.vars) > 2:
+                        raise SolverException(
+                            'Cannot use \'Gillespie\' or \'TauLeaping\' with'
+                            ' transitions that involves more than two groups.'
+                        )
+    
             gm = GModel(tspan=np.linspace(0, t, t + 1))
             species = {
                 g: Species(name=g, initial_value=v, mode='discrete')
@@ -235,3 +244,7 @@ class Model:
                 'Unexpected solver.'
                 ' Options available are \'Gillespie\', \'TauLeaping\' or \'ODE\'.'
             )
+
+
+class SolverException(Exception):
+    pass
