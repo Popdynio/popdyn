@@ -1,5 +1,6 @@
 from __future__ import annotations
 import math
+from multiprocessing.sharedctypes import Value
 
 import numpy as np
 from scipy import integrate
@@ -24,11 +25,8 @@ class Transition:
             N: True if the transition depends on the global population, False
                 in other case.
         """
-        if N and not vars:
-            raise ValueError(
-                'Transition cannot depend on N without interaction of at'
-                ' least one group'
-            )
+        if not vars:
+            raise ValueError('Transition must have at least a group involved')
 
         self.rate = rate
         self.vars = vars
@@ -52,7 +50,7 @@ class Transition:
         return (
             f'{self.rate}' +
             (f' * {" * ".join(self.vars)}' if self.vars else '') +
-            (f' / N^{len(self.vars) - 1}' if self.vars and self.N else '')
+            (f' / N^{len(self.vars) - 1}' if self.N else '')
         )
 
     def __repr__(self) -> str:
@@ -89,6 +87,8 @@ class Model:
             raise ValueError('Invalid start group for transition')
         if end not in self.groups:
             raise ValueError('Invalid end group for transition')
+        if start not in trans.vars:
+            raise ValueError('The start group must be involved in the transition')
 
         self.matrix[start][end] = trans
 

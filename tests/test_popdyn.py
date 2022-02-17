@@ -5,32 +5,31 @@ from popdyn import Model, Transition
 
 class TestTransition:
 
-    t0 = Transition(1.2 * 0.03)
     t1 = Transition(0.555, 'A')
     t2 = Transition(1/10, 'A', 'B', 'C')
     t3 = Transition(0.123 * 0.444, 'A', 'B', N=True)
 
     def test___init__(self):
-        assert self.t0.vars == (), 'Expected empty vars'
         assert self.t1.vars == ('A',), 'Unexpected vars'
         assert self.t2.vars == ('A', 'B', 'C',), 'Unexpected vars'
         assert self.t3.vars == ('A', 'B',), 'Unexpected vars'
 
-        assert self.t0.N == self.t1.N == self.t2.N == False, (
+        assert self.t1.N == self.t2.N == False, (
             'Default value of N should be False')
         assert self.t3.N == True, 'N should be True'
+
+        with pytest.raises(ValueError):
+            Transition(1.2 * 0.03)
 
         with pytest.raises(ValueError):
             Transition(0.0872, N=True)
 
     def test___call__(self):
-        assert self.t0([], 100) == 0.036
         assert round(self.t1([100], 100), 10) == 55.5
         assert self.t2([100, 200, 300], 600) == 6e5
         assert self.t3([100, 200], 300) == 3.6408
 
     def test___str__(self):
-        assert str(self.t0) == '0.036'
         assert str(self.t1) == '0.555 * A'
         assert str(self.t2) == '0.1 * A * B * C'
         assert str(self.t3) == '0.054612 * A * B / N^1'
@@ -52,25 +51,28 @@ class TestModel:
         m = Model(['A', 'B', 'C'])
 
         with pytest.raises(ValueError):
-            m['A', 'D'] = Transition(1)
+            m['A', 'D'] = Transition(1, 'A')
         
         with pytest.raises(ValueError):
-            m['E', 'B'] = Transition(1)
+            m['E', 'B'] = Transition(1, 'A')
         
         with pytest.raises(ValueError):
-            m['E', 'F'] = Transition(1)
+            m['E', 'F'] = Transition(1, 'A')
 
-        m['A', 'B'] = Transition(1)
-        m['B', 'C'] = Transition(1)
-        m['C', 'A'] = Transition(1)
+        with pytest.raises(ValueError):
+            m['A', 'B'] = Transition(1, 'B', 'C')
+
+        m['A', 'B'] = Transition(1, 'A')
+        m['B', 'C'] = Transition(1, 'B')
+        m['C', 'A'] = Transition(1, 'C')
 
         assert all([len(m.matrix[g]) == 1 for g in m.matrix])
 
     def test___getitem__(self):
         m = Model(['A', 'B', 'C'])
-        m['A', 'B'] = Transition(1)
-        m['B', 'C'] = Transition(3)
-        m['C', 'A'] = Transition(5)
+        m['A', 'B'] = Transition(1, 'A')
+        m['B', 'C'] = Transition(3, 'B', 'C')
+        m['C', 'A'] = Transition(5, 'C', 'A')
 
         assert m['A', 'B'].rate == 1
         assert m['B', 'C'].rate == 3
@@ -83,7 +85,7 @@ class TestModel:
     def test_get_in_out_trans(self):
         groups = ['A', 'B', 'C', 'D']
         m = Model(groups)
-        m['A', 'B'] = Transition(1)
+        m['A', 'B'] = Transition(1, 'A')
         m['B', 'C'] = Transition(3, 'B')
         m['D', 'A'] = Transition(7, 'A', 'B', 'C', 'D', N=True)
 
@@ -107,13 +109,13 @@ class TestModel:
         groups = ['A', 'B', 'C', 'D']
         pops = [10, 20, 30, 40]
         m = Model(groups)
-        m['A', 'B'] = Transition(1 * 2)
+        m['A', 'B'] = Transition(1 * 2, 'A')
         m['B', 'C'] = Transition(3 * 4, 'B')
         m['C', 'D'] = Transition(5 * 6, 'C', 'D')
         m['D', 'A'] = Transition(7 * 8, 'A', 'B', 'C', 'D', N=True)
 
-        assert m._differential('A', pops) == 13.44 - 2
-        assert m._differential('B', pops) == 2 - 240
+        assert m._differential('A', pops) == 13.44 - 20
+        assert m._differential('B', pops) == 20 - 240
         assert m._differential('C', pops) == 240 - 36000
         assert m._differential('D', pops) == 36000 - 13.44
 
