@@ -14,7 +14,19 @@ pip3 install popdyn
 
 Let's dive in a simple example to see how it works.
 
-First step is define the model, for this example the [SIR](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model) model.
+First step is define the model, for this example the [SIR](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model) model, whose name comes from the initials S (susceptible), I (infected), R (recovered) and has been quite widespread and used as a basis for more complicated models. In this model, a susceptible can pass to the group of infected if he interacts with an infected and in turn the infected pass to the group of recovered spontaneously. In this model, it is usually taken into account that the probability of contact between a susceptible person and an infected person depends on the number of susceptibles and the proportion of the total population that is made up of infected people. 
+ 
+S(t), I(t), and R(t) represent the number of susceptible, infected, and recovered individuals at time t, respectively. _beta_, known in this case as the transmission rate, represents the number of individuals that go from being susceptible to being infected in a unit of time for each possible effective contact. The number of possible effective contacts is given by the product of S(t) and I(t)/N, which represents the contacts of susceptibles with infected, since the rest of the contacts do not cause a transition from S to I. Note that here it is assumed that contacts occur with equal probability regardless of which group an individual belongs to. In addition to the previous transition, the spontaneous transition from an infected to a recovered one is taken into account, which depends on the number of infected and on _gamma_, called the recovery rate. Finally, the recovery rate is made up of the amount of recoveries that are obtained precisely from the transition from I to R described previously.
+
+The system of differential equations of a deterministic SIR as described above would be:
+
+**dS/dt = - beta *  S(t) * I(t) / N**
+
+**dI/dt = beta * S(t) * I(t) / N - gamma * I(t)**
+
+**dR/dt = gamma * I(t)**
+
+For the example below we consider an initial population composed by 97 susceptible and 3 infected. The values of _beta_ and _gamma_ are 0.35 and 0.035 respectively.
 
 ```python
 from popdyn import Model, Transition
