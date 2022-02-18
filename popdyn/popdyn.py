@@ -1,6 +1,5 @@
 from __future__ import annotations
 import math
-from multiprocessing.sharedctypes import Value
 
 import numpy as np
 from scipy import integrate
@@ -13,7 +12,7 @@ class Transition:
     def __init__(
         self,
         rate: float,
-        *vars: tuple[str],
+        *vars,
         N: bool = False,
     ) -> None:
         """
@@ -24,6 +23,9 @@ class Transition:
             vars: different groups identifiers involved in the transition.
             N: True if the transition depends on the global population, False
                 in other case.
+
+        Raises:
+            ValueError: Invalid definition for transition.
         """
         if not vars:
             raise ValueError('Transition must have at least a group involved')
@@ -65,21 +67,21 @@ class Model:
         matrix with the transitions between each group.
 
         Args:
-            groups: list with the indentifiers for each group.
+            groups: list with the identifiers for each group.
         """
         self.groups = groups
         self.matrix: dict[str, dict[str, Transition]] = {g: {} for g in groups}
 
-    def __setitem__(self, start_end: tuple[str], trans: Transition) -> None:
+    def __setitem__(self, start_end: tuple[str, str], trans: Transition) -> None:
         """
         Adds a transition between two groups to the model.
 
         Args:
-            start_end: tuple containing the the identifiers of start and end
+            start_end: tuple containing the identifiers of start and end
                 groups.
         
         Raises:
-            ValueError: strart or end group are not registered groups of the
+            ValueError: start or end group are not registered groups of the
                 model.
         """
         start, end = start_end
@@ -92,7 +94,7 @@ class Model:
 
         self.matrix[start][end] = trans
 
-    def __getitem__(self, start_end: tuple[str]) -> Transition:
+    def __getitem__(self, start_end: tuple[str, str]) -> Transition | None:
         """
         Gets a transition between to groups of the model.
 
@@ -135,10 +137,10 @@ class Model:
 
         return in_trans, out_trans
 
-    def _differential(self, group: str, groups_pop: dict[str, int]) -> float:
+    def _differential(self, group: str, groups_pop: list[int]) -> float:
         """
         Applies the equation of transformation for a group based on the
-        groups's population.
+        groups' population.
 
         Args:
             group: group target of the equation.
@@ -183,9 +185,10 @@ class Model:
         
         Raises:
             ValueError: received an unexpected solver.
+            SolverException: the solver used cannot solve the model.
 
         Returns:
-            Dictionary containing a key for each grup identifier and a key
+            Dictionary containing a key for each group identifier and a key
             'time', and values for the population for each group in the time
             points.
         """

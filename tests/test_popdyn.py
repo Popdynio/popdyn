@@ -154,8 +154,8 @@ class TestModel:
             'I': 10000,
         }
         sis = Model(list(sis_groups.keys()))
-        sis['S','I'] = Transition(4, 'S', 'I', N=True)
-        sis['I','S'] = Transition(2, 'I')
+        sis['S', 'I'] = Transition(4, 'S', 'I', N=True)
+        sis['I', 'S'] = Transition(2, 'I')
 
         sis_ode = sis.solve(10, list(sis_groups.values()), 'ODE')
         sis_ode_last = [sis_ode[g][-1] for g in no_time(sis_ode)]
@@ -172,16 +172,16 @@ class TestModel:
         # ]), f'SIS stochastic solver wrong result: {sis_stoc_last}'
 
         # SEIR model
-        seir_groups ={
+        seir_groups = {
             'S': 12e6 - 3,
             'E': 0,
             'I': 3,
             'R': 0
         }
         seir = Model(list(seir_groups.keys()))
-        seir['S','E'] = Transition(8.4 * 1/7, 'S', 'I', N=True)
-        seir['E','I'] = Transition(1/5, 'E')
-        seir['I','R'] = Transition(1/7, 'I')
+        seir['S', 'E'] = Transition(8.4 * 1/7, 'S', 'I', N=True)
+        seir['E', 'I'] = Transition(1/5, 'E')
+        seir['I', 'R'] = Transition(1/7, 'I')
 
         seir_ode = seir.solve(100, list(seir_groups.values()), 'ODE')
         seir_ode_last = [seir_ode[g][-1] for g in no_time(seir_ode)]

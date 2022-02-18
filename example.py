@@ -1,5 +1,3 @@
-from mimetypes import init
-from unittest import result
 import matplotlib.pyplot as plt
 from popdyn import Model, Transition
 

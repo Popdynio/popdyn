@@ -21,25 +21,25 @@ from popdyn import Model, Transition
 
 # storage in a dict the ID and the initial population for each group
 groups = {
-    'S': 1000000,
-    'I': 10000,
-    'R': 5000
+    'S': 97,
+    'I': 3,
+    'R': 0
 }
 
-# intialize the model
+# initialize the model
 sir = Model(list(groups.keys()))
 
 # add transitions between groups
-sir['S', 'I'] = Transition(0.0561215, 'S', 'I', N=True)
-sir['I', 'R'] = Transition(0.0455331, 'I')
+sir['S', 'I'] = Transition(0.35, 'S', 'I', N=True)
+sir['I', 'R'] = Transition(0.035, 'I')
 ```
 
 If we print the model, we can see the transitions for each group (`N` is the total population):
 
 ```
 >>> print(sir)
-S -> {'I': 0.0561215 * S * I / N^1}
-I -> {'R': 0.0455331 * I}
+S -> {'I': 0.35 * S * I / N^1}
+I -> {'R': 0.035 * I}
 R -> {}
 ```
 
